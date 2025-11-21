@@ -2,25 +2,15 @@
   command = "cd frontend && npm install && npm run build"
   publish = "frontend/dist"
 
-# Redirect all SPA routes to index.html
-[[redirects]]
-  from = "/dashboard/*"
-  to = "/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/doctor/*"
-  to = "/index.html"
-  status = 200
-
-[[redirects]]
-  from = "/patient/*"
-  to = "/index.html"
-  status = 200
-
 # Proxy API calls (adjust backend URL after deploying backend elsewhere)
 [[redirects]]
   from = "/api/*"
   to = "https://YOUR-BACKEND-HOST.com/:splat"
   status = 200
   force = true
+
+# Redirect all other routes to index.html for SPA routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
