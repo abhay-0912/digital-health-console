@@ -49,3 +49,52 @@ Demo credentials (after seeding):
 - Doctor: doctor@example.com / Doctor123!
 - Patient: patient@example.com / Patient123!
 
+---
+
+## Deployment (Frontend on Netlify, Backend elsewhere)
+
+1. Deploy Backend (e.g. Render / Railway / Fly.io)
+	- Create a new web service pointing to the `backend` directory.
+	- Set environment variables from `backend/.env.example` (e.g. `JWT_SECRET`).
+	- Ensure the service listens on port `4000` (Render auto-detects if `server.js` starts Express on 4000). If hosting SQLite, no extra DB config is required.
+	- After deployment you will have a URL such as `https://digital-health-backend.onrender.com`.
+
+2. Enable CORS on Backend (already permissive by default if not restricted). If you lock it down, allow origin: `https://digital-health-console.netlify.app`.
+
+3. Configure Netlify Environment Variable:
+	- In Netlify dashboard: Site Settings → Environment Variables → Add `VITE_API_BASE_URL` with value of your backend URL (e.g. `https://digital-health-backend.onrender.com`).
+	- Trigger a new deploy (or just redeploy after saving variable).
+
+4. (Optional) Update `netlify.toml` API Proxy:
+	- If you prefer relative `/api/*` calls without setting `VITE_API_BASE_URL`, set the redirect target:
+	  ```toml
+	  [[redirects]]
+	  from = "/api/*"
+	  to = "https://digital-health-backend.onrender.com/:splat"
+	  status = 200
+	  force = true
+	  ```
+	- Remove `VITE_API_BASE_URL` or leave it blank; adjust `apiClient.js` if needed.
+
+5. Verify:
+	- Open the deployed site, check console for absence of `[apiClient] Missing VITE_API_BASE_URL` warning.
+	- Login using seeded demo credentials.
+
+### Troubleshooting Network Error on Login
+"Network Error" typically means the frontend tried to reach `http://localhost:4000` from Netlify (not accessible). Fix by setting `VITE_API_BASE_URL` correctly. After redeploy, requests should return 200/401 JSON responses rather than failing at the network layer.
+
+### Quick Backend Deployment (Render Example)
+```bash
+# From repo root (local machine)
+cd backend
+render.yaml (optional) # or use dashboard to create service
+```
+In Render dashboard:
+	- New Web Service → Connect GitHub repo → Root directory: `backend`
+	- Build command: `npm install`
+	- Start command: `node server.js`
+	- Add Environment Variable: `JWT_SECRET=super-secret-value`
+	- Deploy.
+
+---
+
