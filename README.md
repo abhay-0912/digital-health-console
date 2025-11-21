@@ -98,3 +98,37 @@ In Render dashboard:
 
 ---
 
+## Using Netlify DB (Neon) for Postgres
+
+If you install the Neon extension (Netlify DB), Netlify will provision a Postgres instance and automatically inject `NETLIFY_DATABASE_URL` (and `NETLIFY_DATABASE_URL_UNPOOLED`) into your site build environment.
+
+### How it works with this repo
+1. Our `backend/config/database.js` checks `NETLIFY_DATABASE_URL` or `DATABASE_URL` first. If present it uses Postgres; otherwise it falls back to local SQLite.
+2. When deploying the backend separately (Render/Railway/Fly), set `DATABASE_URL` instead. When building on Netlify Functions (future), `NETLIFY_DATABASE_URL` would be available.
+3. Postgres SSL is enabled with a permissive `rejectUnauthorized: false` to avoid certificate issues on some hosts.
+
+### Add Data Using Netlify DB
+In a Netlify Function or any server-side code running on Netlify you can query directly:
+```js
+import { neon } from '@netlify/neon';
+const sql = neon(); // uses NETLIFY_DATABASE_URL automatically
+const rows = await sql`SELECT * FROM users LIMIT 10`;
+```
+
+### Local Development Against Neon
+Copy the value of `NETLIFY_DATABASE_URL` from the Netlify dashboard and put it into your local `.env` as:
+```
+DATABASE_URL=postgres://...
+```
+Then start the backend; it will connect to Neon instead of SQLite.
+
+### Migrating Existing SQLite Data (Optional)
+If you already created demo data in SQLite and want it in Neon:
+1. Start backend once with SQLite (no DATABASE_URL) so tables/data exist.
+2. Add a temporary script (not included yet) that reads from `database.sqlite` and bulk inserts into Postgres using the Sequelize models while `DATABASE_URL` is set.
+3. Remove the temporary migration script afterwards.
+
+For small demo usage you can simply reseed with `node backend/seed.js` after pointing to Neon.
+
+---
+
