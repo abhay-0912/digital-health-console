@@ -1,0 +1,16 @@
+{
+  "name": "digital-health-console",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "install:all": "npm --prefix backend install && npm --prefix frontend install",
+    "dev": "concurrently \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "dev:seed": "npm --prefix backend run seed && concurrently \"npm --prefix backend run dev\" \"npm --prefix frontend run dev\"",
+    "reset:db": "del backend\\database.sqlite && npm --prefix backend run seed",
+    "build:frontend": "npm --prefix frontend run build",
+    "build": "npm run build:frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}
